@@ -53,19 +53,21 @@ void displayDigit(uint8_t digit, uint8_t number) {
   digitalWrite(ACTIVE_DIGIT, LOW);
 }
 
-volatile uint8_t current_digit = 0;
+#define MAX_TIMER_CYCLES sizeof(clock_time)
+volatile uint8_t current_timer_cycle = 0;
 void updateDisplay() {
-  noInterrupts();
+  //noInterrupts();
+  uint8_t current_digit = current_timer_cycle / 3;
   if (current_digit < sizeof(clock_time)) {
     displayDigit(current_digit, clock_time[current_digit]);
   } else {
     digitalWrite(ACTIVE_DIGIT, HIGH);
   }
-  current_digit += 1;
-  if (current_digit >= sizeof(clock_time)) {
-    current_digit = 0;
+  current_timer_cycle += 1;
+  if (current_digit >= MAX_TIMER_CYCLES) {
+    current_timer_cycle = 0;
   }
-  interrupts();
+  //interrupts();
 }
 
 void decrement_hours_10() {
