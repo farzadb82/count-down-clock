@@ -22,15 +22,14 @@ uint8_t numbers[] {
 };
 
 uint8_t digits[] {
-  0,
-  1,
+  A4,
+  A5,
   2,
   3,
   4,
   5
 };
 
-//volatile byte clock_time[] { 2, 3, 5, 9, 5, 9 };
 volatile byte clock_time[] { 0, 0, 0, 0, 0, 0 };
 volatile uint8_t DP_CONTROL = B00001010;
 volatile uint8_t ACTIVE_DIGIT = digits[0];
