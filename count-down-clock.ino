@@ -138,21 +138,17 @@ void setup() {
     digitalWrite(pin, HIGH);
   }
 
-  //Serial.begin(9600);
+  Serial.begin(9600);
 
   MsTimer2::set(1, updateDisplay);
   MsTimer2::start();
 }
 
 #define POT_PIN 0
+#define LDR_PIN 1
 int val = 0;
+int val2 = 0;
 void loop() {
-  /*
-  for (uint8_t digit=0; digit<sizeof(digits); digit++) {
-    displayDigit(digit, clock_time[digit]);
-    delay(4);
-  }
-  */
   val = analogRead(POT_PIN);
   //Serial.println(val);
   if (val > 1000) {
@@ -162,4 +158,7 @@ void loop() {
   }
   delay(val);
   decrement_seconds_1();
+
+  val2 = analogRead(LDR_PIN);
+  Serial.println(val2);
 }
