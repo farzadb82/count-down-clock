@@ -52,21 +52,23 @@ void displayDigit(uint8_t digit, uint8_t number) {
   digitalWrite(ACTIVE_DIGIT, LOW);
 }
 
-#define MAX_TIMER_CYCLES sizeof(clock_time)
+volatile uint8_t MAX_TIMER_CYCLES = sizeof(clock_time);
 volatile uint8_t current_timer_cycle = 0;
 void updateDisplay() {
-  //noInterrupts();
-  uint8_t current_digit = current_timer_cycle / 3;
+  noInterrupts();
+
+  uint8_t current_digit = current_timer_cycle;
   if (current_digit < sizeof(clock_time)) {
     displayDigit(current_digit, clock_time[current_digit]);
   } else {
     digitalWrite(ACTIVE_DIGIT, HIGH);
   }
   current_timer_cycle += 1;
-  if (current_digit >= MAX_TIMER_CYCLES) {
+  if (current_timer_cycle >= MAX_TIMER_CYCLES) {
     current_timer_cycle = 0;
   }
-  //interrupts();
+
+  interrupts();
 }
 
 void decrement_hours_10() {
@@ -146,19 +148,27 @@ void setup() {
 
 #define POT_PIN 0
 #define LDR_PIN 1
-int val = 0;
-int val2 = 0;
+int pot_val = 0;
+int ldr_val = 0;
+float diff;
 void loop() {
-  val = analogRead(POT_PIN);
+  pot_val = analogRead(POT_PIN);
   //Serial.println(val);
-  if (val > 1000) {
-    val = 1000;
+  if (pot_val > 1000) {
+    pot_val = 1000;
   } else {
-    val = val / 4;
+    pot_val = pot_val / 4;
   }
-  delay(val);
+  delay(pot_val);
   decrement_seconds_1();
 
-  val2 = analogRead(LDR_PIN);
-  Serial.println(val2);
+  ldr_val = analogRead(LDR_PIN);
+  if (ldr_val < 100) {
+    // MIN brightness
+    MAX_TIMER_CYCLES = sizeof(clock_time) + 18;
+  } else {
+    // MAX brightness
+    MAX_TIMER_CYCLES = sizeof(clock_time);
+  }
+  Serial.print(ldr_val);
 }
