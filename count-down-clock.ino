@@ -22,15 +22,14 @@ uint8_t numbers[] {
 };
 
 uint8_t digits[] {
-  0,
-  1,
+  A4,
+  A5,
   2,
   3,
   4,
   5
 };
 
-//volatile byte clock_time[] { 2, 3, 5, 9, 5, 9 };
 volatile byte clock_time[] { 0, 0, 0, 0, 0, 0 };
 volatile uint8_t DP_CONTROL = B00001010;
 volatile uint8_t ACTIVE_DIGIT = digits[0];
@@ -53,18 +52,22 @@ void displayDigit(uint8_t digit, uint8_t number) {
   digitalWrite(ACTIVE_DIGIT, LOW);
 }
 
-volatile uint8_t current_digit = 0;
+volatile uint8_t MAX_TIMER_CYCLES = sizeof(clock_time);
+volatile uint8_t current_timer_cycle = 0;
 void updateDisplay() {
   noInterrupts();
+
+  uint8_t current_digit = current_timer_cycle;
   if (current_digit < sizeof(clock_time)) {
     displayDigit(current_digit, clock_time[current_digit]);
   } else {
     digitalWrite(ACTIVE_DIGIT, HIGH);
   }
-  current_digit += 1;
-  if (current_digit >= sizeof(clock_time)) {
-    current_digit = 0;
+  current_timer_cycle += 1;
+  if (current_timer_cycle >= MAX_TIMER_CYCLES) {
+    current_timer_cycle = 0;
   }
+
   interrupts();
 }
 
@@ -137,28 +140,35 @@ void setup() {
     digitalWrite(pin, HIGH);
   }
 
-  //Serial.begin(9600);
+  Serial.begin(9600);
 
   MsTimer2::set(1, updateDisplay);
   MsTimer2::start();
 }
 
 #define POT_PIN 0
-int val = 0;
+#define LDR_PIN 1
+int pot_val = 0;
+int ldr_val = 0;
+float diff;
 void loop() {
-  /*
-  for (uint8_t digit=0; digit<sizeof(digits); digit++) {
-    displayDigit(digit, clock_time[digit]);
-    delay(4);
-  }
-  */
-  val = analogRead(POT_PIN);
+  pot_val = analogRead(POT_PIN);
   //Serial.println(val);
-  if (val > 1000) {
-    val = 1000;
+  if (pot_val > 1000) {
+    pot_val = 1000;
   } else {
-    val = val / 4;
+    pot_val = pot_val / 4;
   }
-  delay(val);
+  delay(pot_val);
   decrement_seconds_1();
+
+  ldr_val = analogRead(LDR_PIN);
+  if (ldr_val < 100) {
+    // MIN brightness
+    MAX_TIMER_CYCLES = sizeof(clock_time) + 18;
+  } else {
+    // MAX brightness
+    MAX_TIMER_CYCLES = sizeof(clock_time);
+  }
+  Serial.print(ldr_val);
 }
